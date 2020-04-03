@@ -36,7 +36,7 @@ var serviceAccount = require(process.env.serviceAccount);
     });
 
     function sendPushNotification(msg) {
-      var registrationToken = 'esqEZCjkoP8:APA91bG07IxgdTTfeHynAJgwjeHq6WeKWFbl8MiUiuVmp4FGvVemhpJSBGKf4a3PqesCYmUMAjMJJZu0arGpG3I5Eryv1REOVTAfq95CPKW2KgZ_y3Kxg2xddEqlEx4-jPz6_J898iQt';
+      var registrationToken =  process.env.token;
 
       var message = {
         notification: {
