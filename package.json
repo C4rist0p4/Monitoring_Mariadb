@@ -12,6 +12,7 @@
   "dependencies": {
     "@rodrigogs/mysql-events": "^0.6.0",
     "dotenv": "^8.2.0",
-    "firebase-admin": "^8.10.0"
+    "firebase-admin": "^8.10.0",
+    "mariadb": "^2.3.1"
   }
 }

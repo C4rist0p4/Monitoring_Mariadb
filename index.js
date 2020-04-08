@@ -1,4 +1,5 @@
 const MySQLEvents = require('@rodrigogs/mysql-events');
+const mariadb = require('mariadb');
 const dotenv = require('dotenv');
 var admin = require("firebase-admin");
 dotenv.config();
@@ -14,6 +15,14 @@ var serviceAccount = require(process.env.serviceAccount);
     }, {
       startAtEnd: true,
     });
+
+    const pool = mariadb.createPool({
+      host: process.env.host, 
+      user:process.env.user, 
+      password: process.env.password,
+      database: process.env.database,
+      connectionLimit: 5
+    });
   
     
     admin.initializeApp({
@@ -21,27 +30,38 @@ var serviceAccount = require(process.env.serviceAccount);
       databaseURL: process.env.databaseURL
     });
 
-    
     await instance.start();
   
     instance.addTrigger({
       name: 'monitoring all INSERT',
-      expression: 'flussskraftwerk.meldungen.*',
+      expression: 'flusskraftwerk.meldungen.*',
       statement: MySQLEvents.STATEMENTS.INSERT,
       onEvent: (event) => {
-        console.log(event.affectedRows[0].after)
-        
-        //sendPushNotification("event"); 
+        getUserDviceID(event.affectedRows[0].after);
       },
     });
 
-    function sendPushNotification(msg) {
-      var registrationToken =  process.env.token;
+  
+    async function getUserDviceID(data) {
+      let conn;
+      try {     
+        conn = await pool.getConnection();
+        const user = await conn.query("SELECT FK_Benutzer FROM ansicht WHERE FK_Anlage =" + data.fk_anlagen);
+        const deviceID = await conn.query("SELECT idDevice FROM benutzer WHERE idBenutzer =" + user[0].FK_Benutzer);
+        sendPushNotification(deviceID[0].idDevice, data);
+      } catch (err) {
+        console.log(err);
+      } finally {
+        if (conn) return conn.end();
+      }
+    };
 
+    function sendPushNotification(registrationToken, msg) {
+    
       var message = {
         notification: {
-          title: 'event',
-          body: '2:45'
+          title: msg.bemerkungMel,
+          body: msg.datum.toISOString()
         }
       };
 
@@ -57,7 +77,7 @@ var serviceAccount = require(process.env.serviceAccount);
     instance.on(MySQLEvents.EVENTS.CONNECTION_ERROR, console.error);
     instance.on(MySQLEvents.EVENTS.ZONGJI_ERROR, console.error);
   };
-  
+ 
   program()
     .then(() => console.log('Waiting for database evnts...'))
     .catch(console.error);
