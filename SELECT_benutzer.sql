@@ -1,0 +1,1 @@
+SELECT * FROM `flusskraftwerk`.`benutzer` LIMIT 10;
