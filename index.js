@@ -4,7 +4,6 @@ const dotenv = require('dotenv');
 var admin = require("firebase-admin");
 dotenv.config();
 
-
 var serviceAccount = require(process.env.serviceAccount);
 
   const program = async () => {
@@ -41,14 +40,13 @@ var serviceAccount = require(process.env.serviceAccount);
       },
     });
 
-  
     async function getUserDviceID(data) {
       let conn;
       try {     
         conn = await pool.getConnection();
-        const user = await conn.query("SELECT FK_Benutzer FROM ansicht WHERE FK_Anlage =" + data.fk_anlagen);
-        const deviceID = await conn.query("SELECT idDevice FROM benutzer WHERE idBenutzer =" + user[0].FK_Benutzer);
-        sendPushNotification(deviceID[0].idDevice, data);
+        const userdevice = await conn.query("SELECT * FROM ansicht INNER JOIN benutzer ON FK_Benutzer = idBenutzer WHERE FK_Anlage =" + data.fk_anlagen);
+
+        sendPushNotification(userdevice[0].idDevice, data);
       } catch (err) {
         console.log(err);
       } finally {
